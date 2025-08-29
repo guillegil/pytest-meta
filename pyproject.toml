@@ -1,0 +1,24 @@
+[project]
+authors = [{ name = "Guillermo Gil", email = "guillegil@proton.me" }]
+dependencies = ["pytest>=7"]
+description = "Pytest plugin to collect test run metadata"
+version = "0.1.0"
+license = "MIT"
+name = "pytest-meta"
+readme = "README.md"
+requires-python = ">=3.9"
+urls = { homepage = "https://google.es", repository = "https://github.com/guillegil/pytest-meta" }
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.entry-points."pytest11"]
+report = "pytest_meta.plugin"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pytest_meta*"]
+
+[tool.pytest.ini_options]
+filterwarnings = ["ignore::pytest.PytestUnknownMarkWarning"]
