@@ -54,7 +54,6 @@ class PytestHooksPlugin:
         """Called after whole test run finished."""
         if self.allow_hook_verbose: print(f"🏁 Session finished with exit status: {exitstatus}")
         self.meta._update_sessionfinish(session, exitstatus)
-        self.meta.export_json(path="./reports/info.json")
     
     # ========== COLLECTION HOOKS ==========
     
