@@ -135,7 +135,7 @@ class PytestHooksPlugin:
     
     def pytest_report_collectionfinish(self, config: Config, start_path: Path, items: List[Item]) -> Union[str, List[str]]:
         """Add information after collection finished."""
-        return f"📊 Collected {len(items)} items"
+        pass
     
     def pytest_report_teststatus(self, report: TestReport, config: Config) -> Optional[tuple]:
         """Return result-category, shortletter and verbose word."""
