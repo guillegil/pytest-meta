@@ -7,5 +7,3 @@ from pytest_meta import meta
 def test_meta():
     assert meta is not None, "The object meta is None"
     assert isinstance(meta, pytest_meta.MetaInfo), "The instance meta is not MetaInfo"
-
-

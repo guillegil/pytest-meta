@@ -29,12 +29,6 @@ def stage_setup_session():
     yield None
     assert meta.stage == "teardown", f"Stage should be 'teardown' in the setup fixture, got {meta.stage}"
 
-@pytest.fixture(scope="session")
-def stage_setup_session():
-    assert meta.stage == "setup", f"Stage should be 'setup' in the setup fixture, got {meta.stage}"
-    yield None
-    assert meta.stage == "teardown", f"Stage should be 'teardown' in the setup fixture, got {meta.stage}"
-
 @pytest.fixture(scope="function")
 def stage_setup_function():
     assert meta.stage == "setup", f"Stage should be 'setup' in the setup fixture, got {meta.stage}"
@@ -48,4 +42,9 @@ def test_stage(
     stage_setup_session,
     stage_setup_function
 ):
+    assert "stage_setup" in meta.fixture_names
+    assert "stage_setup_autouse" in meta.fixture_names
+    assert "stage_setup_session" in meta.fixture_names
+    assert "stage_setup_function" in meta.fixture_names
+
     assert meta.stage == "call", f"Stage should be 'call' in the test function, got {meta.stage}"

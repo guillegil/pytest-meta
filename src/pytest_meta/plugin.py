@@ -1,3 +1,4 @@
+import time
 import pytest
 from pytest import Item, CallInfo, TestReport, Config, Session
 from _pytest.fixtures import FixtureDef
@@ -27,18 +28,14 @@ class PytestHooksPlugin:
         parser.addoption(
             "--reports", 
             action="store", 
-            default="",
+            default="./",
             help="Specify the root directory for the reports path"
         )
     
     def pytest_configure(self, config: Config) -> None:
         """Called after command line options have been parsed."""
         if self.allow_hook_verbose: print(f"🔧 Plugin configured")
-        self.config = config
-
-        self.meta._set_pytest_config(self.config)
-
-        # self.meta._set_pytest_config(config)
+        self.meta._set_pytest_config(config)
     
     def pytest_unconfigure(self, config: Config) -> None:
         """Called before test process is exited."""
@@ -49,11 +46,15 @@ class PytestHooksPlugin:
     def pytest_sessionstart(self, session: Session) -> None:
         """Called after Session object has been created."""
         if self.allow_hook_verbose: print(f"🚀 Session started")
+        self.meta._set_session_start_time( time.time() )
+        
         self.session = session
     
     def pytest_sessionfinish(self, session: Session, exitstatus: int) -> None:
         """Called after whole test run finished."""
         if self.allow_hook_verbose: print(f"🏁 Session finished with exit status: {exitstatus}")
+        self.meta._update_sessionfinish(session, exitstatus)
+        self.meta.export_json(path="./reports/info.json")
     
     # ========== COLLECTION HOOKS ==========
     
@@ -152,6 +153,7 @@ class PytestHooksPlugin:
     def pytest_runtest_logreport(self, report: TestReport) -> None:
         """Process test setup/call/teardown report."""
         if self.allow_hook_verbose: print(f"📋 Log report: {report.nodeid} - {report.when} - {report.outcome}")
+        self.meta._update_report(report)
     
     # ========== ERROR/WARNING HOOKS ==========
     

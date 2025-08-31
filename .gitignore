@@ -5,3 +5,7 @@ venv
 *.pytest_cache
 
 __pycache__
+
+reports
+
+.DS_Store
