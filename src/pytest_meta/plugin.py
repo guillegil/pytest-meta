@@ -100,19 +100,16 @@ class PytestHooksPlugin:
     def pytest_runtest_setup(self, item: Item) -> None:
         """Called to execute the test item setup."""
         if self.allow_hook_verbose: print(f"🔧 Test setup: {item.nodeid}")
-
         self.meta._update_item(item, "setup")
     
     def pytest_runtest_call(self, item: Item) -> None:
         """Called to run the test."""
         if self.allow_hook_verbose: print(f"▶️ Test call: {item.nodeid}")
-
         self.meta._update_item(item, "call")
     
     def pytest_runtest_teardown(self, item: Item, nextitem: Optional[Item]) -> None:
         """Called to execute the test item teardown."""
         if self.allow_hook_verbose: print(f"🧹 Test teardown: {item.nodeid}")
-
         self.meta._update_item(item, "teardown")
     
     def pytest_runtest_makereport(self, item: Item, call: CallInfo) -> Optional[TestReport]:
@@ -134,7 +131,7 @@ class PytestHooksPlugin:
     
     def pytest_report_header(self, config: Config, start_path: Path) -> Union[str, List[str]]:
         """Add information to test report header."""
-        return "🎯 Custom Plugin Active"
+        return None
     
     def pytest_report_collectionfinish(self, config: Config, start_path: Path, items: List[Item]) -> Union[str, List[str]]:
         """Add information after collection finished."""
@@ -147,8 +144,7 @@ class PytestHooksPlugin:
     
     def pytest_terminal_summary(self, terminalreporter: TerminalReporter, exitstatus: int, config: Config) -> None:
         """Add section to terminal summary reporting."""
-        terminalreporter.write_sep("=", "🎯 Custom Plugin Summary")
-        terminalreporter.write_line("Plugin executed successfully!")
+        pass
     
     def pytest_runtest_logreport(self, report: TestReport) -> None:
         """Process test setup/call/teardown report."""
