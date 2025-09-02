@@ -822,4 +822,5 @@ class MetaInfo:
         except (OSError, TypeError) as e:
             raise e
 
-meta = MetaInfo()
+
+meta : MetaInfo = MetaInfo()
