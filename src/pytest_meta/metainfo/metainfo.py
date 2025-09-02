@@ -809,6 +809,7 @@ class MetaInfo:
         print("=" * 50 + "\n")
 
     def export_json(self, path: str, indent: int = 4, ensure_ascii: bool = False) -> None:
+
         file_path = Path(path)
             
         # Create parent directories if they don't exist
@@ -820,3 +821,7 @@ class MetaInfo:
                         separators=(',', ': '))
         except (OSError, TypeError) as e:
             raise e
+
+
+
+meta = MetaInfo()
