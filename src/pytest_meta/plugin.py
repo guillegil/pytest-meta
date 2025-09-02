@@ -17,7 +17,9 @@ class PytestHooksPlugin:
     """Pytest plugin with commonly available hooks."""
     
     def __init__(self):
-        pytest_meta.meta._instance = MetaInfo()
+        self.meta = MetaInfo()
+        pytest_meta.meta = self.meta
+
         self.allow_hook_verbose = False
 
     
@@ -101,6 +103,8 @@ class PytestHooksPlugin:
         """Called to execute the test item setup."""
         if self.allow_hook_verbose: print(f"🔧 Test setup: {item.nodeid}")
         pytest_meta.meta._update_item(item, "setup")
+
+        print(pytest_meta.meta.abspath)
     
     def pytest_runtest_call(self, item: Item) -> None:
         """Called to run the test."""
