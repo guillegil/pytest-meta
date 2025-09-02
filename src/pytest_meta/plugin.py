@@ -17,7 +17,7 @@ class PytestHooksPlugin:
     """Pytest plugin with commonly available hooks."""
     
     def __init__(self):
-        pytest_meta.meta = MetaInfo()
+        pytest_meta.meta._instance = MetaInfo()
         self.allow_hook_verbose = False
 
     
