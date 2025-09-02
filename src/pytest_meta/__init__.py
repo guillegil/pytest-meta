@@ -5,7 +5,7 @@ __version__ = "0.1.0"
 __all__ = ["meta", "get_meta", "_set_meta"]
 
 # Will be initialized later by the plugin
-meta: Optional[MetaInfo] = None
+meta: Optional[MetaInfo] = MetaInfo()
 
 def get_meta() -> MetaInfo:
     """Return the global MetaInfo instance.
