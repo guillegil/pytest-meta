@@ -19,7 +19,6 @@ class PytestHooksPlugin:
     def __init__(self):
         self.meta = MetaInfo()
         self.allow_hook_verbose = False
-        _set_meta(self.meta)
     
     # ========== CONFIGURATION HOOKS ==========
     
@@ -35,6 +34,7 @@ class PytestHooksPlugin:
     def pytest_configure(self, config: Config) -> None:
         """Called after command line options have been parsed."""
         if self.allow_hook_verbose: print(f"🔧 Plugin configured")
+        _set_meta(self.meta)
         self.meta._set_pytest_config(config)
     
     def pytest_unconfigure(self, config: Config) -> None:
