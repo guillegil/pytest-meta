@@ -21,5 +21,3 @@ class _MetaProxy(MetaInfo):
 
 # exported proxy
 meta : MetaInfo = _MetaProxy()
-
-__all__ = ["meta"]
