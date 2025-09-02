@@ -823,4 +823,4 @@ class MetaInfo:
             raise e
 
 
-meta : MetaInfo = MetaInfo()
+meta: MetaInfo = MetaInfo()
