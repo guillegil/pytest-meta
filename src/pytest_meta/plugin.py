@@ -11,14 +11,17 @@ from typing import Any, List, Optional, Union
 import warnings
 
 from .metainfo.metainfo import MetaInfo
-from . import _set_meta
+import pytest_meta
 
 class PytestHooksPlugin:
     """Pytest plugin with commonly available hooks."""
     
     def __init__(self):
         self.meta = MetaInfo()
+
         self.allow_hook_verbose = False
+        pytest_meta.meta = self.meta
+
     
     # ========== CONFIGURATION HOOKS ==========
     
@@ -35,7 +38,6 @@ class PytestHooksPlugin:
         """Called after command line options have been parsed."""
         if self.allow_hook_verbose: print(f"🔧 Plugin configured")
         print("Setting the object meta")
-        _set_meta(self.meta)
         self.meta._set_pytest_config(config)
     
     def pytest_unconfigure(self, config: Config) -> None:
