@@ -17,10 +17,8 @@ class PytestHooksPlugin:
     """Pytest plugin with commonly available hooks."""
     
     def __init__(self):
-        self.meta = MetaInfo()
-
+        pytest_meta.meta = MetaInfo()
         self.allow_hook_verbose = False
-        pytest_meta.meta = self.meta
 
     
     # ========== CONFIGURATION HOOKS ==========
@@ -38,7 +36,7 @@ class PytestHooksPlugin:
         """Called after command line options have been parsed."""
         if self.allow_hook_verbose: print(f"🔧 Plugin configured")
         print("Setting the object meta")
-        self.meta._set_pytest_config(config)
+        pytest_meta.meta._set_pytest_config(config)
     
     def pytest_unconfigure(self, config: Config) -> None:
         """Called before test process is exited."""
@@ -49,14 +47,14 @@ class PytestHooksPlugin:
     def pytest_sessionstart(self, session: Session) -> None:
         """Called after Session object has been created."""
         if self.allow_hook_verbose: print(f"🚀 Session started")
-        self.meta._set_session_start_time( time.time() )
+        pytest_meta.meta._set_session_start_time( time.time() )
         
         self.session = session
     
     def pytest_sessionfinish(self, session: Session, exitstatus: int) -> None:
         """Called after whole test run finished."""
         if self.allow_hook_verbose: print(f"🏁 Session finished with exit status: {exitstatus}")
-        self.meta._update_sessionfinish(session, exitstatus)
+        pytest_meta.meta._update_sessionfinish(session, exitstatus)
     
     # ========== COLLECTION HOOKS ==========
     
@@ -88,7 +86,7 @@ class PytestHooksPlugin:
     def pytest_runtest_protocol(self, item: Item, nextitem: Optional[Item]) -> Optional[bool]:
         """Perform the runtest protocol for a single test item."""
         if self.allow_hook_verbose: print(f"🔄 Running test protocol: {item.nodeid}")
-        self.meta._init_item(item)
+        pytest_meta.meta._init_item(item)
         return None
     
     def pytest_runtest_logstart(self, nodeid: str, location: tuple) -> None:
@@ -102,17 +100,17 @@ class PytestHooksPlugin:
     def pytest_runtest_setup(self, item: Item) -> None:
         """Called to execute the test item setup."""
         if self.allow_hook_verbose: print(f"🔧 Test setup: {item.nodeid}")
-        self.meta._update_item(item, "setup")
+        pytest_meta.meta._update_item(item, "setup")
     
     def pytest_runtest_call(self, item: Item) -> None:
         """Called to run the test."""
         if self.allow_hook_verbose: print(f"▶️ Test call: {item.nodeid}")
-        self.meta._update_item(item, "call")
+        pytest_meta.meta._update_item(item, "call")
     
     def pytest_runtest_teardown(self, item: Item, nextitem: Optional[Item]) -> None:
         """Called to execute the test item teardown."""
         if self.allow_hook_verbose: print(f"🧹 Test teardown: {item.nodeid}")
-        self.meta._update_item(item, "teardown")
+        pytest_meta.meta._update_item(item, "teardown")
     
     def pytest_runtest_makereport(self, item: Item, call: CallInfo) -> Optional[TestReport]:
         """Create test report for the given item and call."""
@@ -151,7 +149,7 @@ class PytestHooksPlugin:
     def pytest_runtest_logreport(self, report: TestReport) -> None:
         """Process test setup/call/teardown report."""
         if self.allow_hook_verbose: print(f"📋 Log report: {report.nodeid} - {report.when} - {report.outcome}")
-        self.meta._update_report(report)
+        pytest_meta.meta._update_report(report)
     
     # ========== ERROR/WARNING HOOKS ==========
     
