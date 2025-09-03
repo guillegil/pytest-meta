@@ -1,10 +1,4 @@
 
-from .metainfo.metainfo import MetaInfo
-
-meta : MetaInfo = None
-
-def _set_meta(new_meta : MetaInfo):
-    global meta
-    meta = new_meta
+from .metainfo.metainfo import meta, MetaInfo
 
 __all__ = ['meta']

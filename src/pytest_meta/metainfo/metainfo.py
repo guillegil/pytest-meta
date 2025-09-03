@@ -821,3 +821,6 @@ class MetaInfo:
                         separators=(',', ': '))
         except (OSError, TypeError) as e:
             raise e
+
+
+meta: MetaInfo = MetaInfo()
