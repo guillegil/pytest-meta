@@ -1,3 +1,3 @@
-from .metainfo import meta
+from .metainfo import MetaInfo
 
-__all__ = ['meta']
+__all__ = ['MetaInfo']

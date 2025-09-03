@@ -10,15 +10,18 @@ from pathlib import Path
 from typing import Any, List, Optional, Union
 import warnings
 
-from .metainfo.metainfo import meta
+from .metainfo.metainfo import MetaInfo
+from . import _set_meta
 
 
 class PytestHooksPlugin:
     """Pytest plugin with commonly available hooks."""
     
     def __init__(self):
-        self.meta = meta
+        self.meta = MetaInfo()
         self.allow_hook_verbose = False
+
+        _set_meta(self.meta)
     
     # ========== CONFIGURATION HOOKS ==========
     
