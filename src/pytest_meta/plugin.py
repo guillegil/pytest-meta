@@ -16,12 +16,7 @@ from .metainfo.metainfo import meta
 @pytest.hookimpl(tryfirst=True)
 def pytest_addoption(parser: Parser) -> None:
     """Add command-line options."""
-    parser.addoption(
-        "--reports", 
-        action="store", 
-        default="./",
-        help="Specify the root directory for the reports path"
-    )
+    pass
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_configure(config: Config) -> None:
