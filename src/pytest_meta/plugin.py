@@ -13,7 +13,6 @@ import warnings
 from .metainfo.metainfo import meta
 
 # ========== CONFIGURATION HOOKS ==========
-
 @pytest.hookimpl(tryfirst=True)
 def pytest_addoption(parser: Parser) -> None:
     """Add command-line options."""
