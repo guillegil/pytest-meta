@@ -28,6 +28,14 @@ import json
 from pathlib import Path
 import time
 from pytest import Item, CallInfo, TestReport, Config, Session
+import warnings
+import re
+
+from .routes import FIXED_ROUTES
+
+class InvalidRouteWarning(UserWarning):
+    """Warning for routes that conflict with fixed attributes."""
+    pass
 
 class MetaInfo:
 
@@ -169,6 +177,9 @@ class MetaInfo:
             "tests": {},
         }
 
+        self.__custom_event_handlers = {}
+        self.__routes = {}
+
     @property
     def root_report_path(self) -> str:
         return self.__root_report_path
@@ -236,6 +247,10 @@ class MetaInfo:
     @property
     def id(self) -> str:
         return self.__id
+    
+    @property
+    def test_id(self) -> str:
+        return self.id
 
     @property
     def nodeid(self) -> str:
@@ -661,7 +676,6 @@ class MetaInfo:
             duration = self.__testinfo['tests'][self.id]["stop_time"] - self.__testinfo['tests'][self.id]["start_time"]
             self.__testinfo['tests'][self.id]["duration"] = duration
 
-
     def __update_report_setup(self, report: TestReport) -> None:
         self.__setup_start    = report.start
         self.__setup_stop     = report.stop
@@ -807,6 +821,163 @@ class MetaInfo:
             print(f"{key:<25}: {value}")
         
         print("=" * 50 + "\n")
+
+    def __route_is_allowed(self, route: str) -> bool:
+        if route.startswith('{id}.') or route.startswith('{test_id}'):
+            route = f'tests.{route}'
+        
+        return route not in FIXED_ROUTES
+
+    def __parse_route(self, route: str) -> list[str]:
+        if not self.__route_is_allowed(route):
+            warnings.warn(
+                f'Route "{route}" conflicts with fixed attribute and will be ignored. '
+                f'Is this a mistake? Please change the route.',
+                InvalidRouteWarning,
+                stacklevel=4
+            )
+            
+            return [] 
+        placeholder_pattern = re.compile(r'\{([^}]+)\}')
+
+        splitted_route = route.split('.')
+        new_route_parts: list[str] = []
+
+        for route_part in splitted_route:
+            match = placeholder_pattern.search(route_part)
+            if match:
+                placeholder = match.group(1)
+                
+                if hasattr(self, placeholder):
+                    if placeholder == 'testcase':
+                        new_route_parts.append( self.id )
+                    else:
+                        new_route_parts.append( str(getattr(self, placeholder, '')) )
+                else:
+                    # -- Will ignore this route attribute ------------------------------ #
+                    pass
+            else:
+                new_route_parts.append( str(route_part) )
+        
+        # -- If the user does not specify 'test' as first part of the route ------------ #
+        # -- but it specifies the id --------------------------------------------------- #
+        if new_route_parts[0] == self.id:
+            new_route_parts.insert(0, "tests")
+
+        return new_route_parts
+
+    def __add_to_route(self, route: str, value: any) -> None:
+        is_array = self.__routes.get(route, {}).get('is_array', False)
+
+        routes: list[str] = self.__parse_route(route)
+
+        if not routes:
+            return
+
+        current = self.__testinfo
+
+        # Navigate through all but the last route part
+        for route_part in routes[:-1]:
+            if route_part not in current:
+                current[route_part] = {}
+            elif not isinstance(current[route_part], dict):
+                # Overwrite non-dict values to ensure we can navigate
+                current[route_part] = {}
+            current = current[route_part]
+
+        # -- Set the final value --------------------------------- #
+        final_key = routes[-1]
+
+        if is_array:
+            if final_key in current and isinstance(current[final_key], list):
+                current[final_key].append(value)
+            else:
+                current[final_key] = [value]
+        else:
+            current[final_key] = value
+
+    def add_custom_meta(
+        self, 
+        route       : str, 
+        on_event    : str,
+        is_array    : bool = False, 
+        value_func = None, 
+        default_value = None
+    ):
+        if on_event not in self.__custom_event_handlers:
+            self.__custom_event_handlers[on_event] = []
+        
+        self.__routes[route] = {
+            'is_array': is_array
+        }
+
+        handler = {
+            'route': route,
+            'is_array': is_array,
+            'value_func': value_func,
+            'default_value': default_value,
+        }
+        
+        self.__custom_event_handlers[on_event].append(handler)  
+
+    def set_custom_meta(self, route: str, value):
+        """
+        Directly set custom metadata value (bypass events).
+        
+        Args:
+            route: Path like 'session.custom.build_number' or 'tests.{test_id}.custom.tags'
+            value: Value to set
+        """
+        self.__add_to_route(route, value)
+
+    def trigger_event(self, event_name: str, data=None, **kwargs):
+            """
+            Trigger a custom event to collect metadata.
+            
+            Args:
+                event_name: Name of the event to trigger
+                data: Data to pass to value functions (can be dict or any value)
+                **kwargs: Additional context data
+            
+            Examples:
+                meta.trigger_event('myevent', data={'build': '1.2.3'})
+                meta.trigger_event('register_myvar', test_id='current_test')
+                meta.trigger_event('set_priority', data='high', test_id=meta.id)
+            """
+            if event_name not in self.__custom_event_handlers:
+                return
+            
+            # Prepare context
+            context = kwargs.copy()
+            if data is not None:
+                if isinstance(data, dict):
+                    context.update(data)
+                else:
+                    context['data'] = data
+            
+            # Add current test context if available
+            if hasattr(self, 'id') and self.id:
+                context.setdefault('test_id', self.id)
+            
+            for handler in self.__custom_event_handlers[event_name]:
+                try:
+                    route = handler['route']
+                    value_func = handler['value_func']
+                    default_value = handler['default_value']
+                
+                    # Get value
+                    if value_func:
+                        value = value_func(context)
+                    elif 'data' in context:
+                        value = context['data']
+                    else:
+                        value = default_value
+                    
+                    # Set the value
+                    self.__add_to_route(route, value)
+                    
+                except Exception as e:
+                    pass
 
     def export_json(self, path: str, indent: int = 4, ensure_ascii: bool = False) -> None:
 
