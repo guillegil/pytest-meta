@@ -25,6 +25,7 @@
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import time
 from pytest import Item, CallInfo, TestReport, Config, Session
@@ -50,6 +51,8 @@ class MetaInfo:
         self.__markexpr         : str  = ""
         self.__tbstyle          : str  = ""
         self.__capture          : str  = ""
+
+        self.__collection_test_count : dict[str, int] = {}
 
         # ==========================================================
         #                  SESSION PROPERTIES
@@ -80,6 +83,7 @@ class MetaInfo:
         self.__relpath  : str = ""
         self.__lineno   : int = -1
         self.__testcase : str = ""
+        self.__hierarchy: list[str] = []
 
         # -- Current test info ---------------------------------- #
         self.__id            : str = ""
@@ -231,6 +235,10 @@ class MetaInfo:
     @property
     def testcase(self) -> str:
         return self.__testcase
+
+    @property
+    def hierarchy(self) -> list[str]:
+        return self.__hierarchy
 
     @property
     def filename(self) -> str:
@@ -433,6 +441,28 @@ class MetaInfo:
             # Prevent this method to be called by the user
             self.__start_time_started = True
 
+    def __split_path(self, path):
+        """
+        Split a file path into a list of path components.
+        Works across all operating systems.
+
+        Args:
+            path (str): The file path to split
+
+        Returns:
+            list[str]: List of path components
+        """
+        parts = []
+        while True:
+            path, tail = os.path.split(path)
+            if tail:
+                parts.append(tail)
+            else:
+                if path:
+                    parts.append(path)
+                break
+        return parts[::-1]  # Reverse to get correct order
+
     def __parse_cli_args_to_dict(self, args_list: tuple) -> dict:
         """Convert CLI args list to a key-value dictionary."""
         result = {}
@@ -481,7 +511,7 @@ class MetaInfo:
                 "relpath": self.relpath,
                 "abspath": self.abspath,
 
-                "hierarchy": [],
+                "hierarchy": self.hierarchy,
 
                 "filename": self.filename,
                 "testcase": self.testcase,
@@ -562,6 +592,7 @@ class MetaInfo:
         self.__relpath   = item.location[0]
         self.__lineno    = int( item.location[1] )
         self.__testcase  = item.originalname
+        self.__hierarchy = self.__split_path(self.relpath)
 
         self.__fixture_names = getattr(item, "fixturenames", [])
         callspec : dict      = getattr(item, "callspec", {})
@@ -580,6 +611,9 @@ class MetaInfo:
         pass
 
     def __update_item_teardown(self, item: Item) -> None:
+        pass
+
+    def update_collection_finish(self) -> None:
         pass
 
     def _update_item(

@@ -73,10 +73,23 @@ class PytestHooksPlugin:
         if self.allow_hook_verbose: print(f"📝 Modifying {len(items)} collected items")
     
     @pytest.hookimpl(tryfirst=True)
-    def pytest_collection_finish(self, session: Session) -> None:
-        """Called after collection is completed."""
-        if self.allow_hook_verbose: print(f"✅ Collection finished")
-    
+    def pytest_collection_finish(self, session):
+        """
+        Called after collection has been performed.
+        At this point, all parametrized test cases have been expanded.
+        """
+        test_count_by_node = {}
+
+        for item in session.items:
+            # item.nodeid looks like: "tests/test_file.py::test_case[param_set]"
+            base_id = item.nodeid.split("[")[0]  # Strip param info
+            test_count_by_node.setdefault(base_id, 0)
+            test_count_by_node[base_id] += 1
+
+        print("\nCollected test counts:")
+        for node, count in test_count_by_node.items():
+            print(f"{node} -> {count} tests")
+        
     @pytest.hookimpl(tryfirst=True)
     def pytest_itemcollected(self, item: Item) -> None:
         """Called when test item is collected."""
@@ -145,7 +158,7 @@ class PytestHooksPlugin:
     def pytest_report_collectionfinish(self, config: Config, start_path: Path, items: List[Item]) -> Union[str, List[str]]:
         """Add information after collection finished."""
         pass
-    
+
     @pytest.hookimpl(tryfirst=True)
     def pytest_report_teststatus(self, report: TestReport, config: Config) -> Optional[tuple]:
         """Return result-category, shortletter and verbose word."""
