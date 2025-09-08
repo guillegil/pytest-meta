@@ -59,16 +59,16 @@ class MetaInfo:
         # ==========================================================
         self.__start_time_started : bool = False
 
-        self.__session_start     : float = 0.0
-        self.__session_stop      : float = 0.0
-        self.__session_duration  : float = 0.0
+        # self.__session_start     : float = 0.0
+        # self.__session_stop      : float = 0.0
+        # self.__session_duration  : float = 0.0
  
-        self.__session_total_tests   : int = 0
-        self.__session_total_passed  : int = 0
-        self.__session_total_failed  : int = 0
-        self.__session_total_skipped : int = 0
+        # self.__session_total_tests   : int = 0
+        # self.__session_total_passed  : int = 0
+        # self.__session_total_failed  : int = 0
+        # self.__session_total_skipped : int = 0
 
-        self.__exitstatus : int = 0
+        # self.__exitstatus : int = 0
 
         # ==========================================================
         #                   TEST PROPERTIES
@@ -192,37 +192,37 @@ class MetaInfo:
     def root_report_path(self, path: str) -> None:
         self.__root_report_path = path
 
-    @property
-    def session_start(self) -> float:
-        return self.__session_start
+    # @property
+    # def session_start(self) -> float:
+    #     return self.__session_start
 
-    @property
-    def session_stop(self) -> float:
-        return self.__session_stop
+    # @property
+    # def session_stop(self) -> float:
+    #     return self.__session_stop
 
-    @property
-    def session_duration(self) -> float:
-        return self.__session_duration
+    # @property
+    # def session_duration(self) -> float:
+    #     return self.__session_duration
 
-    @property
-    def session_total_tests(self) -> int:
-        return self.__session_total_tests
+    # @property
+    # def session_total_tests(self) -> int:
+    #     return self.__session_total_tests
 
-    @property
-    def session_total_passed(self) -> int:
-        return self.__session_total_passed
+    # @property
+    # def session_total_passed(self) -> int:
+    #     return self.__session_total_passed
 
-    @property
-    def session_total_failed(self) -> int:
-        return self.__session_total_failed
+    # @property
+    # def session_total_failed(self) -> int:
+    #     return self.__session_total_failed
 
-    @property
-    def exitstatus(self) -> int:
-        return self.__exitstatus
+    # @property
+    # def exitstatus(self) -> int:
+    #     return self.__exitstatus
 
-    @property
-    def session_total_skipped(self) -> int:
-        return self.__session_total_skipped
+    # @property
+    # def session_total_skipped(self) -> int:
+    #     return self.__session_total_skipped
 
     @property
     def relpath(self) -> str:

@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, List, Optional, Union
 import warnings
 
-from .metainfo.meta_collector import meta
+from .metainfo.metainfo import meta, MetaInfo
 
 
 class PytestHooksPlugin:
@@ -18,6 +18,7 @@ class PytestHooksPlugin:
     
     def __init__(self):
         self.meta = meta
+        self.allow_hook_verbose = False
     
     # ========== CONFIGURATION HOOKS ==========
     
@@ -29,40 +30,47 @@ class PytestHooksPlugin:
     @pytest.hookimpl(tryfirst=True)
     def pytest_configure(self, config: Config) -> None:
         """Called after command line options have been parsed."""
-        self.meta.collector_configure(config)
+        if self.allow_hook_verbose: print(f"🔧 Plugin configured")
+        self.meta._set_pytest_config(config)
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_unconfigure(self, config: Config) -> None:
         """Called before test process is exited."""
-        pass
-
+        if self.allow_hook_verbose: print(f"🔧 Plugin unconfigured")
+    
     # ========== SESSION HOOKS ==========
     @pytest.hookimpl(tryfirst=True)
     def pytest_sessionstart(self, session: Session) -> None:
         """Called after Session object has been created."""
-        self.meta.collector_sessionstart(session)
-
-
+        if self.allow_hook_verbose: print(f"🚀 Session started")
+        self.meta._set_session_start_time( time.time() )
+        
+        self.session = session
+    
     @pytest.hookimpl(tryfirst=True)
     def pytest_sessionfinish(self, session: Session, exitstatus: int) -> None:
         """Called after whole test run finished."""
-        self.meta.collector_sessionfinish(session, exitstatus)
+        if self.allow_hook_verbose: print(f"🏁 Session finished with exit status: {exitstatus}")
+        self.meta._update_sessionfinish(session, exitstatus)
     
     # ========== COLLECTION HOOKS ==========
     @pytest.hookimpl(tryfirst=True)
     def pytest_collect_file(self, file_path: Path, parent: Collector) -> Optional[Collector]:
         """Create collector for the given path."""
-        pass
+        # Only collect .py files to reduce noise
+        if file_path.suffix == '.py':
+            if self.allow_hook_verbose: print(f"📁 Collecting file: {file_path}")
+        return None
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_generate_tests(self, metafunc: Metafunc) -> None:
         """Generate parametrized tests."""
-        pass
+        if self.allow_hook_verbose: print(f"⚙️ Generating tests for: {metafunc.function.__name__}")
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_collection_modifyitems(self, session: Session, config: Config, items: List[Item]) -> None:
         """Modify collected test items."""
-        pass
+        if self.allow_hook_verbose: print(f"📝 Modifying {len(items)} collected items")
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_collection_finish(self, session):
@@ -70,76 +78,81 @@ class PytestHooksPlugin:
         Called after collection has been performed.
         At this point, all parametrized test cases have been expanded.
         """
-        self.meta.collector_collection_finish(session)
-        # test_count_by_node = {}
+        test_count_by_node = {}
 
-        # for item in session.items:
-        #     # item.nodeid looks like: "tests/test_file.py::test_case[param_set]"
-        #     base_id = item.nodeid.split("[")[0]  # Strip param info
-        #     test_count_by_node.setdefault(base_id, 0)
-        #     test_count_by_node[base_id] += 1
+        for item in session.items:
+            # item.nodeid looks like: "tests/test_file.py::test_case[param_set]"
+            base_id = item.nodeid.split("[")[0]  # Strip param info
+            test_count_by_node.setdefault(base_id, 0)
+            test_count_by_node[base_id] += 1
 
-        # print("\nCollected test counts:")
-        # for node, count in test_count_by_node.items():
-        #     print(f"{node} -> {count} tests")
+        print("\nCollected test counts:")
+        for node, count in test_count_by_node.items():
+            print(f"{node} -> {count} tests")
         
     @pytest.hookimpl(tryfirst=True)
     def pytest_itemcollected(self, item: Item) -> None:
         """Called when test item is collected."""
-        pass
+        if self.allow_hook_verbose: print(f"📋 Item collected: {item.nodeid}")
     
     # ========== TEST EXECUTION HOOKS ==========
     @pytest.hookimpl(tryfirst=True)
     def pytest_runtest_protocol(self, item: Item, nextitem: Optional[Item]) -> Optional[bool]:
         """Perform the runtest protocol for a single test item."""
-        pass
+        if self.allow_hook_verbose: print(f"🔄 Running test protocol: {item.nodeid}")
+        self.meta._init_item(item)
+        return None
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_runtest_logstart(self, nodeid: str, location: tuple) -> None:
         """Called at the start of running the runtest protocol."""
-        pass
+        if self.allow_hook_verbose: print(f"📍 Test log start: {nodeid} - {location}")
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_runtest_logfinish(self, nodeid: str, location: tuple) -> None:
         """Called at the end of running the runtest protocol."""
-        pass
+        if self.allow_hook_verbose: print(f"🏁 Test log finish: {nodeid}")
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_runtest_setup(self, item: Item) -> None:
         """Called to execute the test item setup."""
-        self.meta.collector_runtest_setup(item)
+        if self.allow_hook_verbose: print(f"🔧 Test setup: {item.nodeid}")
+        self.meta._update_item(item, "setup")
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_runtest_call(self, item: Item) -> None:
         """Called to run the test."""
-        self.meta.collector_runtest_call(item)
+        if self.allow_hook_verbose: print(f"▶️ Test call: {item.nodeid}")
+        self.meta._update_item(item, "call")
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_runtest_teardown(self, item: Item, nextitem: Optional[Item]) -> None:
         """Called to execute the test item teardown."""
-        self.meta.collector_runtest_teardown(item)
+        if self.allow_hook_verbose: print(f"🧹 Test teardown: {item.nodeid}")
+        self.meta._update_item(item, "teardown")
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_runtest_makereport(self, item: Item, call: CallInfo) -> Optional[TestReport]:
         """Create test report for the given item and call."""
-        pass
+        if self.allow_hook_verbose: print(f"📊 Making report: {item.nodeid} - {call.when}")
+        return None 
     
     # ========== FIXTURE HOOKS ==========
     @pytest.hookimpl(tryfirst=True)
     def pytest_fixture_setup(self, fixturedef: FixtureDef, request) -> None:
         """Called before fixture setup."""
-        pass
+        if self.allow_hook_verbose: print(f"🔧 Fixture setup: {fixturedef.argname}")
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_fixture_post_finalizer(self, fixturedef: FixtureDef, request) -> None:
         """Called after fixture finalizer."""
-        pass
+        if self.allow_hook_verbose: print(f"🧹 Fixture post finalizer: {fixturedef.argname}")
     
     # ========== REPORTING HOOKS ==========
     @pytest.hookimpl(tryfirst=True)
     def pytest_report_header(self, config: Config, start_path: Path) -> Union[str, List[str]]:
         """Add information to test report header."""
-        pass
+        return None
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_report_collectionfinish(self, config: Config, start_path: Path, items: List[Item]) -> Union[str, List[str]]:
@@ -149,7 +162,8 @@ class PytestHooksPlugin:
     @pytest.hookimpl(tryfirst=True)
     def pytest_report_teststatus(self, report: TestReport, config: Config) -> Optional[tuple]:
         """Return result-category, shortletter and verbose word."""
-        pass
+        if self.allow_hook_verbose: print(f"📈 Test status: {report.nodeid} - {report.outcome}")
+        return None
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_terminal_summary(self, terminalreporter: TerminalReporter, exitstatus: int, config: Config) -> None:
@@ -159,23 +173,25 @@ class PytestHooksPlugin:
     @pytest.hookimpl(tryfirst=True)
     def pytest_runtest_logreport(self, report: TestReport) -> None:
         """Process test setup/call/teardown report."""
-        self.meta.collector_runtest_logreport(report)
+        if self.allow_hook_verbose: print(f"📋 Log report: {report.nodeid} - {report.when} - {report.outcome}")
+        self.meta._update_report(report)
     
     # ========== ERROR/WARNING HOOKS ==========
     @pytest.hookimpl(tryfirst=True)
     def pytest_warning_recorded(self, warning_message: warnings.WarningMessage, when: str, nodeid: str, location: tuple) -> None:
         """Called when warning is recorded."""
-        pass
+        if self.allow_hook_verbose: print(f"⚠️ Warning recorded: {warning_message.message}")
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_exception_interact(self, node, call: CallInfo, report: TestReport) -> None:
         """Called when exception occurred and can be interacted with."""
-        pass
+        if self.allow_hook_verbose: print(f"💥 Exception interact: {node.nodeid}")
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_internalerror(self, excrepr, excinfo) -> Optional[bool]:
         """Called for internal errors."""
-        pass
+        if self.allow_hook_verbose: print(f"🚨 Internal error: {excrepr}")
+        return None
 
 
 # Plugin instance
