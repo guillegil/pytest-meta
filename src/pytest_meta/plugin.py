@@ -156,7 +156,7 @@ class PytestHooksPlugin:
         """Add section to terminal summary reporting."""
         pass
     
-    @pytest.hookimpl(tryfirst=True)
+    @pytest.hookimpl(trylast=True)
     def pytest_runtest_logreport(self, report: TestReport) -> None:
         """Process test setup/call/teardown report."""
         self.meta.collector_runtest_logreport(report)
