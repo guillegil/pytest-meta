@@ -187,7 +187,10 @@ class TestMetadata:
     
     def start_new_run(self) -> None:
         """Start a new test run."""
-        self.__test_index += 1
+
+        if self.current_stage == 'setup':
+            self.__test_index += 1
+    
         self.__current_run = TestRun(parameters=self.__parameters.copy())
         self.__runs.append(self.__current_run)
         
