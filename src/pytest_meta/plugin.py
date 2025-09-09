@@ -92,7 +92,7 @@ class PytestHooksPlugin:
     @pytest.hookimpl(tryfirst=True)
     def pytest_runtest_protocol(self, item: Item, nextitem: Optional[Item]) -> Optional[bool]:
         """Perform the runtest protocol for a single test item."""
-        pass
+        meta.collector_runtest_protocol(item)
     
     @pytest.hookimpl(tryfirst=True)
     def pytest_runtest_logstart(self, nodeid: str, location: tuple) -> None:

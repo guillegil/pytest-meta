@@ -102,6 +102,10 @@ class MetaCollector:
             self.__session_metadata.set_total_collected(total_collected)
         self.__collection_finished = True
     
+    def collector_runtest_protocol(self, item: Item) -> None:
+        test_meta = self._get_or_create_test_metadata(item)
+        self.__current_test = test_meta
+
     def collector_runtest_setup(self, item: Item) -> None:
         """Called to perform the setup phase for a test item."""
         test_meta = self._get_or_create_test_metadata(item)

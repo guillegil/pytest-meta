@@ -8,7 +8,8 @@ from .models.test_models import TestRun, TestStats, StageResult, StageCapture
 
 class TestMetadata:
     """Handles individual test metadata collection."""
-    _last_test_id : str = ''
+    _last_test_id  : str = ''
+    _last_test_idx : int = 0
 
     def __init__(self, *args, **kwargs):        
         # -- Test identification ---------------------------- #
