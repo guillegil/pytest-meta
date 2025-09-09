@@ -15,7 +15,7 @@ from pytest_meta import meta
 def test_parameters(arg1, arg2):
     log.init_term_handler('myhandler', level=log.INFO)
 
-    log.info(f'{meta.current_test.test_index=}')
+    log.info(f'({meta.current_test.testcase}) {meta.current_test.test_index=}')
 
 
 @pytest.mark.parametrize(
@@ -30,4 +30,4 @@ def test_parameters(arg1, arg2):
 def test_parameters_second(arg1, arg2):
     log.init_term_handler('myhandler', level=log.INFO)
 
-    log.info(f'{meta.current_test.test_index=}')
+    log.info(f'({meta.current_test.testcase}) {meta.current_test.test_index=}')

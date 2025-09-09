@@ -24,7 +24,7 @@ class TestMetadata:
         
         # -- Test execution context ------------------------ #
         self.__current_stage : str = ""
-        self.__test_index    : int = 1
+        self.__test_index    : int = 0
         self.__fixture_names : List[str] = []
         self.__parameters    : Dict[str, Any] = {}
         
@@ -182,6 +182,7 @@ class TestMetadata:
         self.__parameters = getattr(callspec, "params", {})
         
         self.__id = self.generate_id(self.relpath, self.testcase)
+        TestMetadata._last_test_id = self.__id
         
         # Set start time on first initialization
         if self.__start_time is None:
@@ -192,9 +193,7 @@ class TestMetadata:
 
         if self.current_stage == 'setup' and self._last_test_id == self.id:
             self.__test_index += 1
-        
-        self._last_test_id = self.id
-    
+            
         self.__current_run = TestRun(parameters=self.__parameters.copy())
         self.__runs.append(self.__current_run)
         
@@ -210,7 +209,7 @@ class TestMetadata:
     def start_stage(self, stage: str) -> None:
         """Start a test stage (setup/call/teardown)."""
         self.__current_stage = stage
-        
+
         if not self.__current_run:
             self.start_new_run()
         
