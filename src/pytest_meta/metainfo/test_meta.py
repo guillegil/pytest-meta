@@ -8,7 +8,8 @@ from .models.test_models import TestRun, TestStats, StageResult, StageCapture
 
 class TestMetadata:
     """Handles individual test metadata collection."""
-    
+    _last_test_id : str = ''
+
     def __init__(self, *args, **kwargs):        
         # -- Test identification ---------------------------- #
         self.__id            : str = ""
@@ -188,8 +189,10 @@ class TestMetadata:
     def start_new_run(self) -> None:
         """Start a new test run."""
 
-        if self.current_stage == 'setup':
+        if self.current_stage == 'setup' and self._last_test_id == self.id:
             self.__test_index += 1
+        
+        self._last_test_id = self.id
     
         self.__current_run = TestRun(parameters=self.__parameters.copy())
         self.__runs.append(self.__current_run)
