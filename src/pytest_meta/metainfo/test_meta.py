@@ -24,7 +24,7 @@ class TestMetadata:
         
         # -- Test execution context ------------------------ #
         self.__current_stage : str = ""
-        self.__test_index    : int = 0
+        self.__test_index    : int = 1
         self.__fixture_names : List[str] = []
         self.__parameters    : Dict[str, Any] = {}
         
@@ -209,10 +209,11 @@ class TestMetadata:
     
     def start_stage(self, stage: str) -> None:
         """Start a test stage (setup/call/teardown)."""
+        self.__current_stage = stage
+        
         if not self.__current_run:
             self.start_new_run()
         
-        self.__current_stage = stage
         self.__current_stage_result = StageResult()
         
         # -- Set stage start time ------------------------------ #
