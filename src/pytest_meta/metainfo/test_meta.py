@@ -119,7 +119,28 @@ class TestMetadata:
     @property
     def current_run(self) -> Optional[TestRun]:
         return self.__current_run
-    
+
+    @property
+    def report_path(self) -> str:
+        """Get the report path."""
+        return self._report_path
+
+    @report_path.setter
+    def report_path(self, value: str) -> None:
+        """Set the report path."""
+        self._report_path = value
+
+    @property
+    def run_report_path(self) -> str:
+        """Get the run report path."""
+        return self._run_report_path
+
+    @run_report_path.setter
+    def run_report_path(self, value: str) -> None:
+        """Set the run report path."""
+        self._run_report_path = value
+
+
     # static methods
     @staticmethod
     def get_id_from_item(item: Item):
