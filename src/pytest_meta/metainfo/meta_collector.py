@@ -36,6 +36,7 @@ class MetaCollector:
         self.__session_metadata : SessionMetadata = SessionMetadata()
         self.__test_metadata    : Dict[str, TestMetadata] = {}
         self.__current_test     : TestMetadata = TestMetadata()
+        self.__next_test        : TestMetadata = TestMetadata()
         
         # Configuration and state
         self.__config: Optional[Config] = None
@@ -59,7 +60,12 @@ class MetaCollector:
     def current_test(self) -> Optional[TestMetadata]:
         """Access to currently running test metadata."""
         return self.__current_test
-    
+
+    @property
+    def next_test(self) -> Optional[TestMetadata]:
+        """Access to next running test metadata."""
+        return self.__next_test
+
     @property
     def tests(self) -> Dict[str, TestMetadata]:
         """Access to all test metadata instances."""
@@ -102,9 +108,11 @@ class MetaCollector:
             self.__session_metadata.set_total_collected(total_collected)
         self.__collection_finished = True
     
-    def collector_runtest_protocol(self, item: Item) -> None:
+    def collector_runtest_protocol(self, item: Item, nextitem: Item) -> None:
         test_meta = self._get_or_create_test_metadata(item)
+        test_meta.increment_test_index()
         self.__current_test = test_meta
+        self.__next_test = TestMetadata().initialize_from_item(nextitem)
 
     def collector_runtest_setup(self, item: Item) -> None:
         """Called to perform the setup phase for a test item."""
@@ -153,14 +161,14 @@ class MetaCollector:
         temp_test = TestMetadata()
         temp_test.initialize_from_item(item)
         test_id = temp_test.id
-        
+
         if test_id not in self.__test_metadata:
             self.__test_metadata[test_id] = temp_test
             test_meta = temp_test
         else:
             # Existing test (parametrized) - start a new run
             test_meta = self.__test_metadata[test_id]
-            test_meta.start_new_run()
+            test_meta.update_from_item(item)
         
         return test_meta
     

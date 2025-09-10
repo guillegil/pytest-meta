@@ -8,8 +8,6 @@ from .models.test_models import TestRun, TestStats, StageResult, StageCapture
 
 class TestMetadata:
     """Handles individual test metadata collection."""
-    _last_test_id  : str = ''
-    _last_test_idx : int = 0
 
     def __init__(self, *args, **kwargs):        
         # -- Test identification ---------------------------- #
@@ -23,10 +21,10 @@ class TestMetadata:
         self.__hierarchy     : List[str] = []
         
         # -- Test execution context ------------------------ #
-        self.__current_stage : str = ""
-        self.__test_index    : int = 0
-        self.__fixture_names : List[str] = []
-        self.__parameters    : Dict[str, Any] = {}
+        self.__current_stage   : str = ""
+        self.__test_index      : int = 0
+        self.__fixture_names   : List[str] = []
+        self.__parameters      : Dict[str, Any] = {}
         
         # -- Test timing and stats ----------------------- #
         self.__start_time    : Optional[float] = None
@@ -122,11 +120,19 @@ class TestMetadata:
     def current_run(self) -> Optional[TestRun]:
         return self.__current_run
     
+    # static methods
+    @staticmethod
+    def get_id_from_item(item: Item):
+        auxtest = TestMetadata().initialize_from_item(item)
+
+        id_string = f"{auxtest.relpath}::{auxtest.testcase}"
+        return hashlib.sha1(id_string.encode("utf-8")).hexdigest()
+
+    # Helper methods
     def generate_id(self, relpath: str, testcase: str) -> str:
         id_string = f"{relpath}::{testcase}"
         return hashlib.sha1(id_string.encode("utf-8")).hexdigest()
 
-    # Helper methods
     def __split_path(self, path: str) -> List[str]:
         """Split a file path into components."""
         parts = []
@@ -167,8 +173,11 @@ class TestMetadata:
         return False
     
     # Lifecycle methods
-    def initialize_from_item(self, item: Item) -> None:
+    def initialize_from_item(self, item: Item) -> "TestMetadata":
         """Initialize test metadata from pytest Item."""
+        if item is None:
+            return TestMetadata()
+
         self.__filename  = item.fspath.basename
         self.__abspath   = item.fspath.dirname
         self.__nodeid    = item.nodeid
@@ -182,18 +191,24 @@ class TestMetadata:
         self.__parameters = getattr(callspec, "params", {})
         
         self.__id = self.generate_id(self.relpath, self.testcase)
-        TestMetadata._last_test_id = self.__id
-        
+
         # Set start time on first initialization
         if self.__start_time is None:
             self.__start_time = time.time()
+        
+        return self
     
+    def update_from_item(self, item: Item) -> None:
+        self.__nodeid    = item.nodeid
+        callspec = getattr(item, "callspec", {})
+        self.__parameters = getattr(callspec, "params", {})
+
+    def increment_test_index(self) -> None:
+        self.__test_index += 1
+
     def start_new_run(self) -> None:
         """Start a new test run."""
-
-        if self.current_stage == 'setup' and self._last_test_id == self.id:
-            self.__test_index += 1
-            
+    
         self.__current_run = TestRun(parameters=self.__parameters.copy())
         self.__runs.append(self.__current_run)
         
