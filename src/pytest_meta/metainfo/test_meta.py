@@ -19,7 +19,9 @@ class TestMetadata:
         self.__abspath       : str = ""
         self.__lineno        : int = -1
         self.__hierarchy     : List[str] = []
-        
+        self.__report_path     : str = ""
+        self.__run_report_path : str = ""
+
         # -- Test execution context ------------------------ #
         self.__current_stage   : str = ""
         self.__test_index      : int = 0
@@ -123,22 +125,22 @@ class TestMetadata:
     @property
     def report_path(self) -> str:
         """Get the report path."""
-        return self._report_path
+        return self.__report_path
 
     @report_path.setter
     def report_path(self, value: str) -> None:
         """Set the report path."""
-        self._report_path = value
+        self.__report_path = value
 
     @property
     def run_report_path(self) -> str:
         """Get the run report path."""
-        return self._run_report_path
+        return self.__run_report_path
 
     @run_report_path.setter
     def run_report_path(self, value: str) -> None:
         """Set the run report path."""
-        self._run_report_path = value
+        self.__run_report_path = value
 
 
     # static methods
