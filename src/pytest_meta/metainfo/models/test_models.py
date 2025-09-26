@@ -29,6 +29,7 @@ class StageResult:
 @dataclass
 class TestRun:
     """Single test run (one execution with specific parameters)."""
+    report_path : str = ""
     parameters  : Dict[str, Any] = None
     status      : str = ""
     start_time  : float = 0.0
