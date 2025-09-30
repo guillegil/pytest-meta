@@ -1,4 +1,5 @@
 import hashlib
+import inspect
 import os
 import time
 from typing import Optional, Dict, Any, List
@@ -211,8 +212,16 @@ class TestMetadata:
         
         self.__fixture_names = getattr(item, "fixturenames", [])
         callspec = getattr(item, "callspec", {})
-        self.__parameters = getattr(callspec, "params", {})
+        parameters = getattr(callspec, "params", {})
+
+        # -- Grab Python defaults from the function signature --------------- #
+        sig = inspect.signature(item.function)
+        for name, param in sig.parameters.items():
+            if param.default is not param.empty and name not in parameters:
+                parameters[name] = param.default
         
+        self.__parameters = parameters
+
         self.__id = self.generate_id(self.relpath, self.testcase)
 
         # Set start time on first initialization

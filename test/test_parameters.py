@@ -27,7 +27,9 @@ def test_parameters(arg1, arg2):
     ]
 )
 @pytest.mark.parameters
-def test_parameters_second(arg1, arg2):
+def test_parameters_second(arg1, arg2, myconfig=True):
     log.init_term_handler('myhandler', level=log.INFO)
 
+    log.info(f'({meta.current_test.fixture_names}')
+    log.info(f'({meta.current_test.parameters}')
     log.info(f'({meta.current_test.testcase}) {meta.current_test.test_index=}')
